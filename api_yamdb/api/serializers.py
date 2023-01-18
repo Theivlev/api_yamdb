@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Genre, Title, Review
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -27,3 +27,23 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Title
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username')
+    title = serializers.PrimaryKeyRelatedField(read_only=True)
+    score = serializers.IntegerField(min_value=1, max_value=10)
+
+    class Meta:
+        fields = '__all__'
+        model = Review
+
+    def create(self, validated_data):
+        if Review.objects.filter(
+            author=validated_data['author'], title=validated_data['title']
+        ).exists():
+            raise serializers.ValidationError(
+                'Можно оставить только один отзыв на произведение.')
+        review = Review.objects.create(**validated_data)
+        return review
