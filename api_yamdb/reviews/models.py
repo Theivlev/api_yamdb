@@ -67,15 +67,28 @@ class Review(models.Model):
         Title,
         on_delete=models.CASCADE,
         related_name='reviews',
-        verbose_name='Title',)
+        verbose_name='Title')
     # пришлось взять модель User из джанги:
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='reviews',
-        verbose_name='Author',)
+        verbose_name='Author')
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'], name='unique_title_author')]
+
+
+class Comment(models.Model):
+    text = models.TextField(
+        verbose_name='Text comment')
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Author')
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE,
+        related_name='comments')
