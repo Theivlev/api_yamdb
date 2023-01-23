@@ -1,6 +1,6 @@
 from pathlib import Path
 
-
+from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -25,8 +25,12 @@ INSTALLED_APPS = [
     'reviews',
     'api',
     'rest_framework_simplejwt',
+    'rest_framework.authtoken',
+    'djoser',
+    'users.apps.UsersConfig',
 
 ]
+AUTH_USER_MODEL = 'users.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -70,11 +74,25 @@ DATABASES = {
 }
 
 REST_FRAMEWORK = {
-   'DEFAULT_AUTHENTICATION_CLASSES': [
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ],
 }
-# Password validation
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+DJOSER = {
+    'ACTIVATION_URL': '#/activate/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': False,
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {

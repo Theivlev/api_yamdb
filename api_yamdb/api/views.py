@@ -7,13 +7,14 @@ from rest_framework.filters import SearchFilter
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Genre, Title,  User
 from .serializers import (
     CategorySerializer,
     GenreSerializer,
     TitleSerializer,
     ReviewSerializer,
-    MyTokenObtainPairSerializer
+    MyTokenObtainPairSerializer,
+    UserSerializer
 )
 
 
@@ -59,6 +60,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title = self.get_title()
         serializer.save(author=self.request.user, title=title)
+    
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer

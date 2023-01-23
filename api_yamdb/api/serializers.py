@@ -2,6 +2,7 @@ from rest_framework import serializers
 from reviews.models import Category, Genre, Title, Review
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from reviews.models import User
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,14 +50,17 @@ class ReviewSerializer(serializers.ModelSerializer):
         review = Review.objects.create(**validated_data)
         return review
 
+class UserSerializer(serializers.ModelSerializer):
+  class Meta:
+      model = User
+      fields = "__all__"
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
 
-        # Add custom claims
         token['name'] = user.name
-        # ...
 
         return token
 
