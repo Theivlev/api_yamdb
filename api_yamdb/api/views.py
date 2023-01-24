@@ -1,3 +1,4 @@
+
 from django.shortcuts import render
 from random import randint
 # Create your views here.
@@ -108,7 +109,6 @@ def token(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     user = get_object_or_404(User, username=serializer.data['username'])
     refresh = RefreshToken.for_user(user)
-    
     return Response({
         'refresh': str(refresh),
         'access': str(refresh.access_token)})
