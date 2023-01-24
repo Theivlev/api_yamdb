@@ -66,12 +66,12 @@ class Review(models.Model):
         validators=[MinValueValidator(1, 'Минимальная оценка 1'),
                     MaxValueValidator(10, 'Максимальная оценка 10')],
         verbose_name='Score')
+
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Title',)
-    # пришлось взять модель User из джанги:
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

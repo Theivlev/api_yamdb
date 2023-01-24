@@ -50,17 +50,36 @@ class ReviewSerializer(serializers.ModelSerializer):
         review = Review.objects.create(**validated_data)
         return review
 
+
+class SignUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError('Недопустимое имя пользователя')
+        return value
+
+
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    confiration_code = serializers.CharField(required=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
+
 class UserSerializer(serializers.ModelSerializer):
-  class Meta:
-      model = User
-      fields = "__all__"
+    username = serializers.CharField(required=True)
+    email = serializers.CharField(required=True)
+    role = serializers.StringRelatedField(read_only=True)
 
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
+    class Meta:
+        model = User
+        fields = '__all__'
 
-        token['name'] = user.name
-
-        return token
-
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError('Недопустимое имя пользователя')
+        return value

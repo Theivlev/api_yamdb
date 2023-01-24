@@ -24,7 +24,10 @@ class CustomUser(AbstractUser):
     choices=USER_ROLES,
     default='user',
     )
-    
+    bio = models.TextField(
+        blank=True,
+        verbose_name='Биография'
+    )
 
     def __str__(self):
         return self.username
