@@ -106,8 +106,7 @@ def token(request):
     serializer = TokenSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    username = serializer.data['username']
-    user = get_object_or_404(User, username=username)
+    user = get_object_or_404(User, username=serializer.data['username'])
     refresh = RefreshToken.for_user(user)
     return Response({
         'refresh': str(refresh),
