@@ -29,7 +29,7 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Title
-
+    
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
@@ -92,3 +92,17 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
+
+class UserAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role',
+        )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Имя пользователя "me" не разрешено.'
+            )
+        return value

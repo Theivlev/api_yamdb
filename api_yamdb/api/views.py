@@ -17,16 +17,19 @@ from .serializers import (
     SignUpSerializer,
     UserSerializer,
     TokenSerializer,
-    CommentSerializer
+    CommentSerializer,
+    UserAdminSerializer
 )
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens  import  RefreshToken
 
+from api.permissions import *
+
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    # permission_classes =
+    permission_classes = (IsAdminOrSuperuser | ReadOnly,)
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
 
@@ -34,7 +37,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    # permission_classes =
+    permission_classes = (IsAdminOrSuperuser | ReadOnly,)
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
 
@@ -44,14 +47,14 @@ class TitleViewSet(viewsets.ModelViewSet):
                 .select_related('category')
                 .prefetch_related('genre'))
     serializer_class = TitleSerializer
-    # permission_classes =
+    permission_classes = (IsAdminOrSuperuser | ReadOnly,)
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    # permission_classes =
+    permission_classes = (IsAdminOrSuperuser | IsModerator | IsOwnerOrReadOnly,)
 
     def get_title(self):
         title_id = self.kwargs['title_id']
@@ -67,7 +70,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserAdminSerializer
+    permission_classes = (IsAdminOrSuperuser,)
 
 
 def generate_code():
@@ -84,7 +88,7 @@ def  get_tokens_for_user(user):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    # permission_classes = IsAuthOrAdminOrModerator
+    permission_classes = (IsAdminOrSuperuser | IsModerator | IsOwnerOrReadOnly,)
 
     def get_review(self):
         review_id = self.kwargs['review_id']
