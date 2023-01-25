@@ -6,7 +6,9 @@ from .views import (CategoryViewSet,
                     TitleViewSet,
                     ReviewViewSet,
                     token,
-                    signup,)
+                    signup,
+                    UserViewSet,
+                    CommentViewSet)
 
 app_name = 'api'
 
@@ -19,7 +21,11 @@ router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,
     basename='reviews')
-
+router_v1.register('users', UserViewSet, basename='users')
+router_v1.register(
+    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    CommentViewSet,
+    basename='comments')
 urlpatterns = [
     path('v1/', include(router_v1.urls)),
     path('v1/auth/', include('djoser.urls')),
