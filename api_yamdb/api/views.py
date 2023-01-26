@@ -8,8 +8,8 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
 from django.core.mail import send_mail
-# from django_filters.rest_framework import DjangoFilterBackend
-# from filters import TitleFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import TitleFilter
 from reviews.models import Category, Genre, Title,  User, Review
 from .serializers import (
     CategorySerializer,
@@ -52,8 +52,8 @@ class TitleViewSet(viewsets.ModelViewSet):
                 .prefetch_related('genre'))
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrSuperuser | ReadOnly,)
-    # filter_backends = (DjangoFilterBackend,)
-    # filterset_class = TitleFilter
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
     search_fields = ('name',)
 
 
