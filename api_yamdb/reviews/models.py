@@ -28,9 +28,9 @@ class Genre(models.Model):
     slug = models.SlugField(
         max_length=50,
         unique=True)
-
+        
     def __str__(self):
-        return self.name
+        return f'{self.title} {self.genre}'
 
 
 class Title(models.Model):
@@ -57,6 +57,7 @@ class Title(models.Model):
 class GenreTitle(models.Model):
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
+
 
 
 class Review(models.Model):

@@ -4,6 +4,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from reviews.models import User
 
+from django.db.models import Avg
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
@@ -16,7 +18,8 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleSerializerCreate(serializers.ModelSerializer):
+    """Для создания"""
     genre = serializers.SlugRelatedField(
         queryset=Genre.objects.all(),
         slug_field='slug',
@@ -29,7 +32,23 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Title
-    
+
+class TitleSerializerRead(serializers.ModelSerializer):
+    """Для чтения"""
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
+    rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'description', 'year', 'category', 'genre', 'rating'
+        )
+        read_only_fields = ('id',)
+
+    def get_rating(self, obj):
+        obj = obj.reviews.all().aggregate(rating=Avg('score'))
+        return obj['rating']
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
@@ -51,7 +70,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         return review
 
 
-class SignUpSerializer(serializers.ModelSerializer):
+class SignUpSerializer(serializers.Serializer):
     class Meta:
         model = User
         fields = ('username', 'email')
@@ -64,7 +83,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
-    confiration_code = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(required=True)
 
     class Meta:
         model = User
