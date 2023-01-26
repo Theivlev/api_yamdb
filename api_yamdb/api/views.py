@@ -1,14 +1,15 @@
-
 from django.shortcuts import render
 from random import randint
-# Create your views here.
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
-from rest_framework.filters import SearchFilter
+from rest_framework import filters, viewsets
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.pagination import (LimitOffsetPagination,
+                                       PageNumberPagination)
 from django.core.mail import send_mail
+# from django_filters.rest_framework import DjangoFilterBackend
+# from filters import TitleFilter
 from reviews.models import Category, Genre, Title,  User, Review
 from .serializers import (
     CategorySerializer,
@@ -31,16 +32,18 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrSuperuser | ReadOnly,)
-    filter_backends = (SearchFilter,)
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrSuperuser | ReadOnly,)
-    filter_backends = (SearchFilter,)
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -49,13 +52,15 @@ class TitleViewSet(viewsets.ModelViewSet):
                 .prefetch_related('genre'))
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrSuperuser | ReadOnly,)
-    filter_backends = (SearchFilter,)
+    # filter_backends = (DjangoFilterBackend,)
+    # filterset_class = TitleFilter
     search_fields = ('name',)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAdminOrSuperuser | IsModerator | IsOwnerOrReadOnly,)
+    pagination_class = LimitOffsetPagination
 
     def get_title(self):
         title_id = self.kwargs['title_id']
@@ -73,6 +78,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserAdminSerializer
     permission_classes = (IsAdminOrSuperuser,)
+    pagination_class = PageNumberPagination
 
 
 def generate_code():
@@ -90,6 +96,7 @@ def  get_tokens_for_user(user):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAdminOrSuperuser | IsModerator | IsOwnerOrReadOnly,)
+    pagination_class = LimitOffsetPagination
 
     def get_review(self):
         review_id = self.kwargs['review_id']

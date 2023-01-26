@@ -8,7 +8,8 @@ from .views import (CategoryViewSet,
                     token,
                     signup,
                     UserViewSet,
-                    CommentViewSet)
+                    CommentViewSet,
+                    CurrentUserView)
 
 app_name = 'api'
 
