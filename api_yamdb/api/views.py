@@ -28,8 +28,14 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens  import  RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from api.permissions import *
-
-class CategoryViewSet(viewsets.ModelViewSet):
+from api_yamdb.settings import ADMIN_EMAIL
+from rest_framework import mixins, viewsets
+class CreateListDestroyMixin(
+    mixins.CreateModelMixin, mixins.ListModelMixin,
+    mixins.DestroyModelMixin, viewsets.GenericViewSet,
+):
+    pass
+class CategoryViewSet(CreateListDestroyMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrSuperuser | ReadOnly,)
@@ -39,7 +45,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(CreateListDestroyMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrSuperuser | ReadOnly,)
@@ -128,13 +134,6 @@ def generate_code():
     list_numbers = [str(randint(0, 9)) for i in range(8)]
     return ''.join(list_numbers)
 
-def send_code(user):
-    confirmation_code = generate_code()
-    subject = 'Код подтверждения от Yamdb'
-    massage = f'{confirmation_code} - ваш код авторизации'
-    user_email = user.email
-    return send_mail(subject, massage, user_email)
-
 
 @api_view(['POST'])
 def signup(request):
@@ -143,7 +142,12 @@ def signup(request):
         user = User.objects.get_or_create(
                 username=serializer.validated_data.get('username'),
                 email=serializer.validated_data.get('email'))
-        send_code(user)
+        confirmation_code = generate_code()
+        subject = 'Код подтверждения от Yamdb'
+        massage = f'{confirmation_code} - ваш код авторизации'
+        user_email = [user.email]
+        recipient_list = ADMIN_EMAIL
+        send_mail(subject, massage, recipient_list, user_email)
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -158,3 +162,5 @@ def token(request):
     return Response({
         'refresh': str(refresh),
         'access': str(refresh.access_token)}, status=status.HTTP_200_OK)
+
+

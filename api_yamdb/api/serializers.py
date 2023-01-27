@@ -3,7 +3,7 @@ from reviews.models import Category, Genre, Title, Review, Comment
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from reviews.models import User
-
+from rest_framework.validators import UniqueValidator
 from django.db.models import Avg
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -70,7 +70,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         return review
 
 
-class SignUpSerializer(serializers.Serializer):
+class SignUpSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=True, max_length=150,)
+    email = serializers.EmailField(required=True,  max_length=150,)
     class Meta:
         model = User
         fields = ('username', 'email')
@@ -90,10 +92,10 @@ class TokenSerializer(serializers.Serializer):
         fields = ('username', 'confirmation_code')
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True)
-    email = serializers.CharField(required=True)
+    username = serializers.RegexField(r'^[\w.@+-]+$', max_length=150)
+    email = serializers.EmailField(max_length=150,)
     role = serializers.StringRelatedField(read_only=True)
-
+    
     class Meta:
         model = User
         fields = '__all__'
@@ -124,4 +126,3 @@ class UserAdminSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Имя пользователя "me" не разрешено.'
             )
-        return value
