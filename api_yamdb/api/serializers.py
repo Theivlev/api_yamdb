@@ -135,3 +135,4 @@ class UserAdminSerializer(serializers.ModelSerializer):
                 'Имя пользователя "me" не разрешено.'
             )
 
+        return value
