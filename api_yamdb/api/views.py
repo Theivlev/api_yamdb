@@ -1,11 +1,9 @@
-
-from django.shortcuts import render
 from random import randint
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, viewsets
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.decorators import action, api_view, permission_classes
+from django.db import IntegrityError
+from django.contrib.auth.tokens import default_token_generator
+from rest_framework import filters, viewsets, mixins
+from rest_framework.decorators import action, api_view
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
 from django.core.mail import send_mail
@@ -26,11 +24,12 @@ from .serializers import (
 )
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework_simplejwt.tokens  import  RefreshToken
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from api.permissions import *
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
+from api.permissions import IsAdminOrSuperuser, ReadOnly, IsReviewAndComment
 from api_yamdb.settings import ADMIN_EMAIL
-from rest_framework import mixins, viewsets
+
+
 class CreateListDestroyMixin(
     mixins.CreateModelMixin, mixins.ListModelMixin,
     mixins.DestroyModelMixin, viewsets.GenericViewSet,
@@ -45,7 +44,6 @@ class CategoryViewSet(CreateListDestroyMixin):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
-
 
 
 class GenreViewSet(CreateListDestroyMixin):
@@ -86,7 +84,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title = self.get_title()
         serializer.save(author=self.request.user, title=title)
-    
+
+
 class UserViewSet(viewsets.ModelViewSet):
     http_method_names = ('get', 'patch', 'delete', 'post')
     queryset = User.objects.all()
@@ -97,26 +96,31 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
-
-    
-    @action(methods=['get', 'patch'],detail=False, url_path='me', permission_classes=(IsAuthenticated,))
+    @action(
+        methods=['get', 'patch'],
+        detail=False, url_path='me',
+        permission_classes=(IsAuthenticated,))
     def about_user(self, request):
         serializer = UserSerializer(request.user)
         if request.method == 'PATCH':
-            serializer = UserSerializer(request.user, data=request.data, partial=True)
+            serializer = UserSerializer(
+                request.user,
+                data=request.data,
+                partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-def  get_tokens_for_user(user):
+def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
     return {
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
@@ -140,13 +144,14 @@ def generate_code():
     list_numbers = [str(randint(0, 9)) for i in range(8)]
     return ''.join(list_numbers)
 
-from django.db import IntegrityError
+
 @api_view(['POST'])
 def signup(request):
     serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid():
         try:
-            user, created = User.objects.get_or_create(username=serializer.validated_data.get('username'),
+            user, created = User.objects.get_or_create(
+                username=serializer.validated_data.get('username'),
                 email=serializer.validated_data.get('email'))
         except IntegrityError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -159,7 +164,7 @@ def signup(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-from django.contrib.auth.tokens import default_token_generator
+
 @api_view(['POST'])
 def token(request):
     serializer = TokenSerializer(data=request.data)

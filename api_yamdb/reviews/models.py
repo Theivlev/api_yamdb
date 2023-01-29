@@ -1,11 +1,8 @@
 from django.db import models
-
-# Create your models here.
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
-from users.models import CustomUser
-# Временная модель юзер
+
+
 User = get_user_model()
 
 
@@ -28,7 +25,7 @@ class Genre(models.Model):
     slug = models.SlugField(
         max_length=50,
         unique=True)
-        
+
     def __str__(self):
         return f'{self.title} {self.genre}'
 
@@ -59,7 +56,6 @@ class GenreTitle(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
 
-
 class Review(models.Model):
     text = models.TextField(
         verbose_name='Text review')
@@ -87,6 +83,7 @@ class Review(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'], name='unique_title_author')]
+
 
 class Comment(models.Model):
     text = models.TextField(

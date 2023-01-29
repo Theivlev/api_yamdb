@@ -1,6 +1,4 @@
 from django.db import models
-
-# Create your models here.
 from django.contrib.auth.models import AbstractUser
 
 
@@ -11,23 +9,26 @@ class CustomUser(AbstractUser):
     ADMIN = 'admin'
 
     USER_ROLES = [
-    (USER, 'Пользователь'),
-    (MODERATOR, 'Модератор'),
-    (ADMIN, 'Администратор'),
+        (USER, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Администратор'),
     ]
 
-    username = models.CharField(max_length=150, blank=True, null=True, unique=True)
+    username = models.CharField(max_length=150,
+                                blank=True,
+                                null=True,
+                                unique=True)
     email = models.EmailField(('email address'), unique=True)
     role = models.CharField(
-    verbose_name='Роль пользователя',
-    max_length=25,
-    choices=USER_ROLES,
-    default='user',
+        verbose_name='Роль пользователя',
+        max_length=25,
+        choices=USER_ROLES,
+        default='user',
     )
     bio = models.TextField(
         blank=True,
-        verbose_name='Биография'
-    )
+        verbose_name='Биография')
+
     def __str__(self):
         return self.username
 
@@ -42,4 +43,3 @@ class CustomUser(AbstractUser):
     @property
     def is_admin(self):
         return self.role == 'admin'
-
