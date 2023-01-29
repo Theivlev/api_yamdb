@@ -1,33 +1,27 @@
 from random import randint
-from django.shortcuts import get_object_or_404
-from django.db import IntegrityError
+
+from api_yamdb.settings import ADMIN_EMAIL
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework import filters, viewsets, mixins
+from django.core.mail import send_mail
+from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
-from django.core.mail import send_mail
-from django_filters.rest_framework import DjangoFilterBackend
-from .filters import TitleFilter
-from reviews.models import Category, Genre, Title,  User, Review
-from .serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    TitleSerializerRead,
-    ReviewSerializer,
-    SignUpSerializer,
-    UserSerializer,
-    TokenSerializer,
-    CommentSerializer,
-    UserAdminSerializer,
-    TitleSerializerCreate
-)
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-from api.permissions import IsAdminOrSuperuser, ReadOnly, IsReviewAndComment
-from api_yamdb.settings import ADMIN_EMAIL
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+from reviews.models import Category, Genre, Review, Title, User
+
+from api.permissions import IsAdminOrSuperuser, IsReviewAndComment, ReadOnly
+
+from .filters import TitleFilter
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer, SignUpSerializer,
+                          TitleSerializerCreate, TitleSerializerRead,
+                          TokenSerializer, UserAdminSerializer, UserSerializer)
 
 
 class CreateListDestroyMixin(
