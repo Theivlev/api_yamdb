@@ -1,12 +1,14 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-
+from . import views
 from .views import (CategoryViewSet,
                     GenreViewSet,
                     TitleViewSet,
                     ReviewViewSet,
                     token,
-                    signup,)
+                    signup,
+                    UserViewSet,
+                    CommentViewSet,)
 
 app_name = 'api'
 
@@ -19,11 +21,15 @@ router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,
     basename='reviews')
-
+router_v1.register(r'users', UserViewSet, basename='users')
+router_v1.register(
+    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    CommentViewSet,
+    basename='comments')
+    
 urlpatterns = [
     path('v1/', include(router_v1.urls)),
-    path('v1/auth/', include('djoser.urls')),
-    path('v1/auth/', include('djoser.urls.jwt')),
     path('v1/auth/signup/', signup, name='signup'),
     path('v1/auth/token/', token, name='token'),
+
 ]

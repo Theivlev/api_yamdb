@@ -28,9 +28,9 @@ class Genre(models.Model):
     slug = models.SlugField(
         max_length=50,
         unique=True)
-
+        
     def __str__(self):
-        return self.name
+        return f'{self.title} {self.genre}'
 
 
 class Title(models.Model):
@@ -59,6 +59,7 @@ class GenreTitle(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
 
+
 class Review(models.Model):
     text = models.TextField(
         verbose_name='Text review')
@@ -77,8 +78,31 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Author',)
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата публикации'
+    )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'], name='unique_title_author')]
+
+class Comment(models.Model):
+    text = models.TextField(
+        verbose_name='Text comment')
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Author')
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE,
+        related_name='comments')
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата публикации'
+    )
+
+    def __str__(self):
+        return self.text
