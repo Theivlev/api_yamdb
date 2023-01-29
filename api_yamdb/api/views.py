@@ -139,12 +139,16 @@ def generate_code():
     list_numbers = [str(randint(0, 9)) for i in range(8)]
     return ''.join(list_numbers)
 
-
+from django.db import IntegrityError
 @api_view(['POST'])
 def signup(request):
     serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid():
-        user = serializer.save()
+        try:
+            user, created = User.objects.get_or_create(username=serializer.validated_data.get('username'),
+                email=serializer.validated_data.get('email'))
+        except IntegrityError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         confirmation_code = generate_code()
         subject = 'Код подтверждения от Yamdb'
         massage = f'{confirmation_code} - ваш код авторизации'
@@ -166,6 +170,4 @@ def token(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     refresh = RefreshToken.for_user(user)
     return Response({
-        'access': str(refresh.access_token)}, status=status.HTTP_200_CREATED)
-
-
+        'access': str(refresh.access_token)}, status=status.HTTP_201_CREATED)

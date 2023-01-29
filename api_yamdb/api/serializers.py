@@ -73,20 +73,17 @@ from api.validators import UnicodeUsernameValidator
 class SignUpSerializer(serializers.Serializer):
     email = serializers.EmailField(
         required=True, max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all())]
     )
     username = serializers.CharField(max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all()), UnicodeUsernameValidator()],
+        validators=[UnicodeUsernameValidator()],
         required=True,
     )
-
-    def create(self, validated_data):
-        return User.objects.create(**validated_data)
-        
     def validate_username(self, value):
         if value == 'me':
             raise serializers.ValidationError('Недопустимое имя пользователя')
         return value
+
+
 
 class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
