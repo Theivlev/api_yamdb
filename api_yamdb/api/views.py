@@ -35,6 +35,8 @@ class CreateListDestroyMixin(
     mixins.DestroyModelMixin, viewsets.GenericViewSet,
 ):
     pass
+
+
 class CategoryViewSet(CreateListDestroyMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -69,7 +71,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAdminOrSuperuser | IsModerator | IsOwnerOrReadOnly,)
+    permission_classes = (IsReviewAndComment,)
     pagination_class = LimitOffsetPagination
 
     def get_title(self):
@@ -85,11 +87,15 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, title=title)
     
 class UserViewSet(viewsets.ModelViewSet):
+    http_method_names = ('get', 'patch', 'delete', 'post')
     queryset = User.objects.all()
     serializer_class = UserAdminSerializer
     permission_classes = (IsAdminOrSuperuser,)
+    lookup_field = 'username'
     pagination_class = PageNumberPagination
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
+
 
     
     @action(methods=['get', 'patch'],detail=False, url_path='me', permission_classes=(IsAuthenticated,))
@@ -103,7 +109,6 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
 def  get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
@@ -114,7 +119,7 @@ def  get_tokens_for_user(user):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAdminOrSuperuser | IsModerator | IsOwnerOrReadOnly,)
+    permission_classes = (IsReviewAndComment,)
     pagination_class = LimitOffsetPagination
 
     def get_review(self):
@@ -139,9 +144,7 @@ def generate_code():
 def signup(request):
     serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid():
-        user = User.objects.get_or_create(
-                username=serializer.validated_data.get('username'),
-                email=serializer.validated_data.get('email'))
+        user = serializer.save()
         confirmation_code = generate_code()
         subject = 'Код подтверждения от Yamdb'
         massage = f'{confirmation_code} - ваш код авторизации'
@@ -151,16 +154,18 @@ def signup(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+from django.contrib.auth.tokens import default_token_generator
 @api_view(['POST'])
 def token(request):
     serializer = TokenSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     user = get_object_or_404(User, username=serializer.data['username'])
+    confirmation_code = serializer.data['confirmation_code']
+    if not default_token_generator.check_token(user, confirmation_code):
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     refresh = RefreshToken.for_user(user)
     return Response({
-        'refresh': str(refresh),
-        'access': str(refresh.access_token)}, status=status.HTTP_200_OK)
+        'access': str(refresh.access_token)}, status=status.HTTP_200_CREATED)
 
 

@@ -5,7 +5,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from reviews.models import User
 from rest_framework.validators import UniqueValidator
 from django.db.models import Avg
-
+from rest_framework.validators import UniqueTogetherValidator
+from users.models import CustomUser
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
@@ -68,20 +69,24 @@ class ReviewSerializer(serializers.ModelSerializer):
                 'Можно оставить только один отзыв на произведение.')
         review = Review.objects.create(**validated_data)
         return review
+from api.validators import UnicodeUsernameValidator
+class SignUpSerializer(serializers.Serializer):
+    email = serializers.EmailField(
+        required=True, max_length=150,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+    username = serializers.CharField(max_length=150,
+        validators=[UniqueValidator(queryset=User.objects.all()), UnicodeUsernameValidator()],
+        required=True,
+    )
 
-
-class SignUpSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True, max_length=150,)
-    email = serializers.EmailField(required=True,  max_length=150,)
-    class Meta:
-        model = User
-        fields = ('username', 'email')
-
+    def create(self, validated_data):
+        return User.objects.create(**validated_data)
+        
     def validate_username(self, value):
         if value == 'me':
             raise serializers.ValidationError('Недопустимое имя пользователя')
         return value
-
 
 class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
@@ -92,8 +97,8 @@ class TokenSerializer(serializers.Serializer):
         fields = ('username', 'confirmation_code')
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.RegexField(r'^[\w.@+-]+$', max_length=150)
-    email = serializers.EmailField(max_length=150,)
+    username = serializers.RegexField(r'^[\w.@+-]+$', max_length=150, required=True)
+    email = serializers.EmailField(max_length=150, required=True)
     role = serializers.StringRelatedField(read_only=True)
     
     class Meta:
@@ -115,14 +120,18 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UserAdminSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=150,
+        validators=[UniqueValidator(queryset=User.objects.all()), UnicodeUsernameValidator()],
+        required=True,
+    )
     class Meta:
         model = User
         fields = (
             'username', 'email', 'first_name', 'last_name', 'bio', 'role',
         )
-
     def validate_username(self, value):
         if value == 'me':
             raise serializers.ValidationError(
                 'Имя пользователя "me" не разрешено.'
             )
+
