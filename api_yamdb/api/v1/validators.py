@@ -4,6 +4,8 @@ from django.core import validators
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
 
+from rest_framework import serializers
+
 
 @deconstructible
 class ASCIIUsernameValidator(validators.RegexValidator):
@@ -23,3 +25,9 @@ class UnicodeUsernameValidator(validators.RegexValidator):
         "numbers, and @/./+/-/_ characters."
     )
     flags = 0
+
+
+def username(value):
+    if value == 'me':
+        raise serializers.ValidationError('Недопустимое имя пользователя')
+    return value

@@ -17,7 +17,7 @@ class CustomUser(AbstractUser):
     username = models.CharField(max_length=150,
                                 blank=True,
                                 null=True,
-                                unique=True)
+                                unique=True,)
     email = models.EmailField(('email address'), unique=True)
     role = models.CharField(
         verbose_name='Роль пользователя',
@@ -34,12 +34,12 @@ class CustomUser(AbstractUser):
 
     @property
     def is_user(self):
-        return self.role == 'user'
+        return self.role == self.USER
 
     @property
     def is_moderator(self):
-        return self.role == 'moderator'
+        return self.role == self.MODERATOR
 
     @property
     def is_admin(self):
-        return self.role == 'admin'
+        return self.role == self.ADMIN
