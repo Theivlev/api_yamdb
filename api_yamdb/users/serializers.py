@@ -1,8 +1,10 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from api.v1.validators import UnicodeUsernameValidator, username
-from reviews.models import User
+
+User = get_user_model()
 
 
 class SignUpSerializer(serializers.Serializer):
@@ -26,11 +28,10 @@ class TokenSerializer(serializers.Serializer):
 
 
 class UserAdminSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(
-        max_length=150,
-        validators=[UniqueValidator(
+    username = serializers.CharField(max_length=150, validators=[
+        UniqueValidator(
             queryset=User.objects.all()),
-            UnicodeUsernameValidator(),],
+        UnicodeUsernameValidator(),],
         required=True)
 
     class Meta:
@@ -45,9 +46,9 @@ class UserAdminSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.RegexField(
         r'^[\w.@+-]+$',
-        max_length=150,
-        required=True)
-    email = serializers.EmailField(max_length=150, required=True)
+        required=True,
+        max_length=150,)
+    email = serializers.EmailField(required=True, max_length=150,)
     role = serializers.StringRelatedField(read_only=True)
 
     class Meta:

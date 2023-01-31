@@ -13,12 +13,12 @@ class CustomUser(AbstractUser):
         (MODERATOR, 'Модератор'),
         (ADMIN, 'Администратор'),
     ]
-
-    username = models.CharField(max_length=150,
-                                blank=True,
-                                null=True,
-                                unique=True,)
-    email = models.EmailField(('email address'), unique=True)
+    username = models.CharField(
+        max_length=140,
+        blank=False,
+        null=True,
+        unique=True,)
+    email = models.EmailField(('email address'), unique=True, max_length=200,)
     role = models.CharField(
         verbose_name='Роль пользователя',
         max_length=25,

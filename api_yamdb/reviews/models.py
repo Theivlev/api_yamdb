@@ -13,6 +13,10 @@ class Category(models.Model):
         max_length=50,
         unique=True)
 
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+
     def __str__(self):
         return self.name
 
@@ -24,6 +28,10 @@ class Genre(models.Model):
     slug = models.SlugField(
         max_length=50,
         unique=True)
+
+    class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
 
     def __str__(self):
         return f'{self.title} {self.genre}'
@@ -45,6 +53,10 @@ class Title(models.Model):
         null=True,
         on_delete=models.SET_NULL,
         related_name='categories')
+
+    class Meta:
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
 
     def __str__(self):
         return self.name
@@ -79,6 +91,8 @@ class Review(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'], name='unique_title_author')]
@@ -99,6 +113,10 @@ class Comment(models.Model):
         auto_now_add=True,
         verbose_name='Дата публикации'
     )
+
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
         return self.text
