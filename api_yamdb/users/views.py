@@ -1,3 +1,4 @@
+from api_yamdb.settings import ADMIN_EMAIL
 from django.db import IntegrityError
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -60,8 +61,7 @@ def signup(request):
     subject = 'Код подтверждения от Yamdb'
     massage = f'{confirmation_code} - ваш код авторизации'
     user_email = [user.email]
-    recipient_list = [user.email]
-    send_mail(subject, massage, recipient_list, user_email)
+    send_mail(subject, massage, ADMIN_EMAIL, user_email)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
