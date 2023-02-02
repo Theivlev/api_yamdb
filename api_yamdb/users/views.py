@@ -1,4 +1,3 @@
-from api_yamdb.settings import ADMIN_EMAIL
 from django.db import IntegrityError
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -32,12 +31,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(
         methods=['get', 'patch'],
-        detail=False, url_path='me',
-        permission_classes=(IsAuthenticated,))
-    def about_user(self, request):
-        serializer = UserSerializer(request.user)
+        detail=False,
+        permission_classes=(IsAuthenticated,),
+        serializer_class=UserSerializer)
+    def me(self, request):
+        serializer = self.get_serializer(request.user)
         if request.method == 'PATCH':
-            serializer = UserSerializer(
+            serializer = self.get_serializer(
                 request.user,
                 data=request.data,
                 partial=True)
@@ -46,7 +46,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
+@api_view(['POST'],)
 def signup(request):
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -56,11 +56,11 @@ def signup(request):
             email=serializer.validated_data.get('email'))
     except IntegrityError:
         return Response(status=status.HTTP_400_BAD_REQUEST)
-    confirmation_code = default_token_generator
+    confirmation_code = default_token_generator.make_token(user)
     subject = 'Код подтверждения от Yamdb'
     massage = f'{confirmation_code} - ваш код авторизации'
     user_email = [user.email]
-    recipient_list = ADMIN_EMAIL
+    recipient_list = [user.email]
     send_mail(subject, massage, recipient_list, user_email)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
